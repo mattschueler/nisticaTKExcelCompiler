@@ -33,7 +33,7 @@ public class HSSFCompiler {
 			}
 		}
 		try {
-			FileInputStream tempIn = new FileInputStream(tempLocation);
+			InputStream tempIn = HSSFCompiler.class.getResourceAsStream(tempLocation);
 			HSSFWorkbook bookOut = new HSSFWorkbook(tempIn);
 			tempIn.close();
 			finalOut = new FileOutputStream("thaiorder" + dateString + ".xls");
