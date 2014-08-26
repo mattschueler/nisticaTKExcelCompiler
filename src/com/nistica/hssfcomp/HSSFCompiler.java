@@ -1,9 +1,6 @@
 package com.nistica.hssfcomp;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
 import java.util.*;
 
 import org.apache.poi.ss.usermodel.*;
