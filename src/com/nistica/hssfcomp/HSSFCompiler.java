@@ -15,9 +15,11 @@ public class HSSFCompiler {
 	public static List<String> filenames;
 	public static File[] files;
 	public static GregorianCalendar gc = new GregorianCalendar();
-	public static final String dateString = "" + gc.get(Calendar.YEAR) + String.format("%02d", (gc.get(Calendar.MONTH)+1)) + String.format("%02d", (gc.get(Calendar.DAY_OF_MONTH)+1));
+	public static final String dateString = "" + gc.get(Calendar.YEAR) + String.format("%02d", (gc.get(Calendar.MONTH)+1)) + String.format("%02d", gc.get(Calendar.DAY_OF_MONTH));
 	public static final String fileString = "indivOrders/";
 	public static final String tempLocation = "/ordersTemplate/TEMPLATE.xls";
+	public static final String standingString = "weeklyOrders/WO_Orders.xls";
+	
 	public static FileInputStream nextIn;
 	public static FileOutputStream finalOut;
 	
@@ -40,7 +42,6 @@ public class HSSFCompiler {
 			finalOut = new FileOutputStream("thaiorder" + dateString + ".xls");
 			HSSFWorkbook nextBook;
 			for (String name : filenames) {
-				System.out.println(filenames.get(filenames.indexOf(name)));
 				nextIn = new FileInputStream(fileString + filenames.get(filenames.indexOf(name)));
 				nextBook = new HSSFWorkbook(nextIn);
 				nextIn.close();
@@ -54,19 +55,73 @@ public class HSSFCompiler {
 					nextRow  = nextSheet.getRow(i);
 					bookOut.getSheet("new sheet").createRow(i + offset);
 					for (int j=1;j<8;j++) {
-						System.out.print(j);
 						bookOut.getSheet("new sheet").getRow(i + offset).createCell(j);
-						System.out.println(nextRow.getCell(j).getStringCellValue());
 						if (j == 7) {
 							bookOut.getSheet("new sheet").getRow(i + offset).getCell(j).setCellValue(Double.parseDouble(nextRow.getCell(j).getStringCellValue()));
 						} else {
 							bookOut.getSheet("new sheet").getRow(i + offset).getCell(j).setCellValue(nextRow.getCell(j).getStringCellValue());
 						}
 					}
-					System.out.print("\n");
 					i++;
 				}
-			}	
+				for (File file : files) {
+					String thefilename = file.getName();
+					if (thefilename.equals(name)) {
+						file.delete();
+						break;
+					}
+				}
+			}
+			//go through weekly stuff here
+			FileInputStream weekIn = new FileInputStream(standingString);
+			HSSFWorkbook weekBook = new HSSFWorkbook(weekIn);
+			HSSFSheet weekSheet = weekBook.getSheet("new sheet");
+			weekIn.close();
+			FileOutputStream weekOut = new FileOutputStream(standingString);
+			int weekOffset = 0;
+			do {} while (bookOut.getSheet("new sheet").getRow(weekOffset++) != null);
+			weekOffset--;
+			int i = 0;
+			HSSFRow weekRow = weekSheet.getRow(0);
+			while (weekSheet.getRow(i).getCell(0) != null) {
+				weekRow = weekSheet.getRow(i);
+				bookOut.getSheet("new sheet").createRow(i + weekOffset);
+				try {
+					if (weekSheet.getRow(i).getCell(0).getStringCellValue() != "0") {
+						for (int j=1;j<8;j++) {
+							bookOut.getSheet("new sheet").getRow(i + weekOffset).createCell(j);
+							if (j == 7) {
+								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(Double.parseDouble(weekRow.getCell(j).getStringCellValue()));
+							} else {
+								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
+							}
+						}
+						int newVal = Integer.parseInt(weekBook.getSheet("new sheet").getRow(i).getCell(0).getStringCellValue())-1;
+						weekBook.getSheet("new sheet").getRow(i).getCell(0).setCellValue(newVal);
+						i++;
+					} else {
+						
+					}
+					weekBook.write(weekOut);
+				} catch (Exception e) {
+					if (weekSheet.getRow(i).getCell(0).getNumericCellValue() != 0) {
+						for (int j=1;j<8;j++) {
+							bookOut.getSheet("new sheet").getRow(i + weekOffset).createCell(j);
+							if (j == 7) {
+								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(Double.parseDouble(weekRow.getCell(j).getStringCellValue()));
+							} else {
+								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
+							}
+						}
+						int newVal = Integer.parseInt(weekBook.getSheet("new sheet").getRow(i).getCell(0).getStringCellValue())-1;
+						weekBook.getSheet("new sheet").getRow(i).getCell(0).setCellValue(newVal);
+						i++;
+					} else {
+						
+					}
+				}
+			}
+			weekOut.close();
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellFormula("SUM(H:H)");
 			bookOut.getSheet("new sheet").getRow(5).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);;
