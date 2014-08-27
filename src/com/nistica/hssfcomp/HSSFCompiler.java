@@ -2,6 +2,10 @@ package com.nistica.hssfcomp;
 
 import java.io.*;
 import java.util.*;
+import java.awt.Font;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.hssf.usermodel.*;
@@ -11,7 +15,7 @@ public class HSSFCompiler {
 	public static List<String> filenames;
 	public static File[] files;
 	public static GregorianCalendar gc = new GregorianCalendar();
-	public static final String dateString = "" + gc.get(Calendar.YEAR) + String.format("%02d", (gc.get(Calendar.MONTH)+1)) + gc.get(Calendar.DAY_OF_MONTH);
+	public static final String dateString = "" + gc.get(Calendar.YEAR) + String.format("%02d", (gc.get(Calendar.MONTH)+1)) + String.format("%02d", (gc.get(Calendar.DAY_OF_MONTH)+1));
 	public static final String fileString = "indivOrders/";
 	public static final String tempLocation = "/ordersTemplate/TEMPLATE.xls";
 	public static FileInputStream nextIn;
@@ -70,6 +74,13 @@ public class HSSFCompiler {
 			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);;
 			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellFormula("J4+J6");
 			bookOut.write(finalOut);
+			JFrame frame = new JFrame();
+			JLabel label = new JLabel("Successful");
+			label.setFont(new Font("Arial", Font.BOLD, 24));
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.add(label);
+			frame.setVisible(true);
+			frame.pack();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		} finally {
