@@ -61,6 +61,7 @@ public class HSSFCompiler {
 						} else {
 							bookOut.getSheet("new sheet").getRow(i + offset).getCell(j).setCellValue(nextRow.getCell(j).getStringCellValue());
 						}
+						bookOut.getSheet("new sheet").getRow(i + offset).getCell(j).setCellStyle(SetCS(bookOut));
 					}
 					i++;
 				}
@@ -83,44 +84,38 @@ public class HSSFCompiler {
 			weekOffset--;
 			int i = 0;
 			HSSFRow weekRow = weekSheet.getRow(0);
-			while (weekSheet.getRow(i).getCell(0) != null) {
+			Cell weekCell = null;
+			int weekCellType;
+			//while (weekRow != null) {
+			do {
 				weekRow = weekSheet.getRow(i);
 				bookOut.getSheet("new sheet").createRow(i + weekOffset);
 				try {
-					if (weekSheet.getRow(i).getCell(0).getStringCellValue() != "0") {
-						for (int j=1;j<8;j++) {
-							bookOut.getSheet("new sheet").getRow(i + weekOffset).createCell(j);
-							if (j == 7) {
-								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(Double.parseDouble(weekRow.getCell(j).getStringCellValue()));
-							} else {
-								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
+					weekCell = weekRow.getCell(0);
+				} catch (NullPointerException e) {
+					break;
+				}
+				if (weekCell != null) {
+					weekCellType = weekCell.getCellType();
+					if (weekCellType == Cell.CELL_TYPE_NUMERIC){
+						if (weekCell.getNumericCellValue() != 0) {
+							for (int j=1;j<8;j++) {
+								bookOut.getSheet("new sheet").getRow(i + weekOffset).createCell(j);
+								if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
+										bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
+								} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
+										bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
+								}
+								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
 							}
+							double newVal = weekCell.getNumericCellValue()-1;
+							weekCell.setCellValue(newVal);
 						}
-						int newVal = Integer.parseInt(weekBook.getSheet("new sheet").getRow(i).getCell(0).getStringCellValue())-1;
-						weekBook.getSheet("new sheet").getRow(i).getCell(0).setCellValue(newVal);
-						i++;
-					} else {
-						
-					}
-					weekBook.write(weekOut);
-				} catch (Exception e) {
-					if (weekSheet.getRow(i).getCell(0).getNumericCellValue() != 0) {
-						for (int j=1;j<8;j++) {
-							bookOut.getSheet("new sheet").getRow(i + weekOffset).createCell(j);
-							if (j == 7) {
-								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(Double.parseDouble(weekRow.getCell(j).getStringCellValue()));
-							} else {
-								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
-							}
-						}
-						int newVal = Integer.parseInt(weekBook.getSheet("new sheet").getRow(i).getCell(0).getStringCellValue())-1;
-						weekBook.getSheet("new sheet").getRow(i).getCell(0).setCellValue(newVal);
-						i++;
-					} else {
-						
 					}
 				}
-			}
+				i++;
+			} while(true);
+			weekBook.write(weekOut);
 			weekOut.close();
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellFormula("SUM(H:H)");
@@ -129,13 +124,13 @@ public class HSSFCompiler {
 			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);;
 			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellFormula("J4+J6");
 			bookOut.write(finalOut);
-			JFrame frame = new JFrame();
+			/*JFrame frame = new JFrame();
 			JLabel label = new JLabel("Successful");
 			label.setFont(new Font("Arial", Font.BOLD, 24));
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.add(label);
 			frame.setVisible(true);
-			frame.pack();
+			frame.pack();*/
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		} finally {
@@ -145,5 +140,18 @@ public class HSSFCompiler {
 				e.printStackTrace();
 			}
 		}
+	}
+	public static CellStyle SetCS(HSSFWorkbook workbook) {
+		CellStyle style = workbook.createCellStyle();
+		style.setBorderRight(CellStyle.BORDER_THIN);
+        style.setRightBorderColor(IndexedColors.BLACK.getIndex());
+        style.setBorderBottom(CellStyle.BORDER_THIN);
+        style.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        style.setBorderLeft(CellStyle.BORDER_THIN);
+        style.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        style.setBorderTop(CellStyle.BORDER_THIN);
+        style.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        style.setAlignment(CellStyle.ALIGN_CENTER);
+        return style;
 	}
 }
