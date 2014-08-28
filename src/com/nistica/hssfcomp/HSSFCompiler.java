@@ -31,7 +31,6 @@ public class HSSFCompiler {
 			if (file.isFile()) {
 				if (file.getName().toLowerCase().endsWith((".xls"))) {
 					filenames.add(file.getName());
-					System.out.println(file.getName());
 				}
 			}
 		}
