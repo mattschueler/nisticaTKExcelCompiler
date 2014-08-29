@@ -31,6 +31,7 @@ public class HSSFCompiler {
 			if (file.isFile()) {
 				if (file.getName().toLowerCase().endsWith((".xls"))) {
 					filenames.add(file.getName());
+					System.out.println(file.getName());
 				}
 			}
 		}
@@ -47,7 +48,18 @@ public class HSSFCompiler {
 				HSSFSheet nextSheet = nextBook.getSheet("new sheet");
 				int i = 0;
 				int offset = 0;
-				do {} while (bookOut.getSheet("new sheet").getRow(offset++) != null);
+				do {
+					try {
+						if (bookOut.getSheet("new sheet").getRow(offset) != null) {
+							offset++;
+						} else {
+							break;
+						}
+					} catch (NullPointerException e){
+						e.printStackTrace();
+						break;
+					}
+				} while (true);
 				offset--;
 				HSSFRow nextRow;
 				while (nextSheet.getRow(i) != null) {
@@ -64,13 +76,13 @@ public class HSSFCompiler {
 					}
 					i++;
 				}
-				for (File file : files) {
+				/*for (File file : files) {
 					String thefilename = file.getName();
 					if (thefilename.equals(name)) {
 						file.delete();
 						break;
 					}
-				}
+				}*/
 			}
 			//go through weekly stuff here
 			FileInputStream weekIn = new FileInputStream(standingString);
@@ -79,42 +91,46 @@ public class HSSFCompiler {
 			weekIn.close();
 			FileOutputStream weekOut = new FileOutputStream(standingString);
 			int weekOffset = 0;
-			do {} while (bookOut.getSheet("new sheet").getRow(weekOffset++) != null);
+			do {} while (bookOut.getSheet("new sheet").getRow(weekOffset++).getCell(0) != null);
 			weekOffset--;
 			int i = 0;
-			HSSFRow weekRow = weekSheet.getRow(0);
-			Cell weekCell = null;
-			int weekCellType;
-			//while (weekRow != null) {
-			do {
-				weekRow = weekSheet.getRow(i);
-				bookOut.getSheet("new sheet").createRow(i + weekOffset);
-				try {
-					weekCell = weekRow.getCell(0);
-				} catch (NullPointerException e) {
-					break;
-				}
-				if (weekCell != null) {
-					weekCellType = weekCell.getCellType();
-					if (weekCellType == Cell.CELL_TYPE_NUMERIC){
-						if (weekCell.getNumericCellValue() != 0) {
-							for (int j=1;j<8;j++) {
-								bookOut.getSheet("new sheet").getRow(i + weekOffset).createCell(j);
-								if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
-										bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
-								} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
-										bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
+			try {
+				HSSFRow weekRow;
+				Cell weekCell = null;
+				int weekCellType;
+				//while (weekRow != null) {
+				do {
+					weekRow = weekSheet.getRow(i);
+					bookOut.getSheet("new sheet").createRow(i + weekOffset);
+					try {
+						weekCell = weekRow.getCell(0);
+					} catch (NullPointerException e) {
+						break;
+					}
+					if (weekCell != null) {
+						weekCellType = weekCell.getCellType();
+						if (weekCellType == Cell.CELL_TYPE_NUMERIC){
+							if (weekCell.getNumericCellValue() != 0) {
+								for (int j=1;j<8;j++) {
+									bookOut.getSheet("new sheet").getRow(i + weekOffset).createCell(j);
+									if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
+											bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
+									} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
+											bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
+									}
+									bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
 								}
-								bookOut.getSheet("new sheet").getRow(i + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
+								double newVal = weekCell.getNumericCellValue()-1;
+								weekCell.setCellValue(newVal);
 							}
-							double newVal = weekCell.getNumericCellValue()-1;
-							weekCell.setCellValue(newVal);
 						}
 					}
-				}
-				i++;
-			} while(true);
-			weekBook.write(weekOut);
+					i++;
+				} while(true);
+				weekBook.write(weekOut);
+			} catch (NullPointerException e){
+				e.printStackTrace();
+			}
 			weekOut.close();
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellFormula("SUM(H:H)");
