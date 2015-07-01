@@ -25,8 +25,7 @@ public class HSSFCompiler {
 	
 	public static void main(String args[]) {
 		filenames = new ArrayList<String>();
-		//files = new File("orders/indivOrders").listFiles();
-		files = new File("indivOrders").listFiles();
+		files = new File(fileString).listFiles();
 		for (File file : files) {
 			if (file.isFile()) {
 				if (file.getName().toLowerCase().endsWith((".xls"))) {
@@ -79,13 +78,6 @@ public class HSSFCompiler {
 					i++;
 				}
 				offset++;
-				/*for (File file : files) {
-					String thefilename = file.getName();
-					if (thefilename.equals(name)) {
-						file.delete();
-						break;
-					}
-				}*/
 			}
 			//go through weekly stuff here
 			FileInputStream weekIn = new FileInputStream(standingString);
@@ -93,16 +85,21 @@ public class HSSFCompiler {
 			HSSFSheet weekSheet = weekBook.getSheet("new sheet");
 			weekIn.close();
 			FileOutputStream weekOut = new FileOutputStream(standingString);
-			int weekOffset = 0;
-			do {} while (bookOut.getSheet("new sheet").getRow(weekOffset++).getCell(0) != null);
-			weekOffset--;
+			int weekOffset = offset;
+			try {
+				do {} while (bookOut.getSheet("new sheet").getRow(weekOffset++).getCell(0) != null);
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+			} finally {
+				
+			}
+			System.out.println(weekOffset--);
 			int i = 0;
 			int real = 0;
 			try {
 				HSSFRow weekRow;
 				Cell weekCell = null;
 				int weekCellType;
-				//while (weekRow != null) {
 				do {
 					weekRow = weekSheet.getRow(i);
 					bookOut.getSheet("new sheet").createRow(i + weekOffset);
@@ -113,45 +110,42 @@ public class HSSFCompiler {
 					}
 					if (weekCell != null) {
 						weekCellType = weekCell.getCellType();
-						if (weekCellType == Cell.CELL_TYPE_NUMERIC){
-							if (weekCell.getNumericCellValue() != 0) {
-								for (int j=1;j<8;j++) {
-									bookOut.getSheet("new sheet").getRow(real + weekOffset).createCell(j);
-									if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
-											bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
-									} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
-											bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
-									}
-									bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
+						if (weekCellType == Cell.CELL_TYPE_NUMERIC && weekCell.getNumericCellValue() != 0){
+							for (int j=1;j<8;j++) {
+								bookOut.getSheet("new sheet").getRow(real + weekOffset).createCell(j);
+								if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
+										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
+								} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
+										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
 								}
-								double newVal = weekCell.getNumericCellValue()-1;
-								weekCell.setCellValue(newVal);
-								real++;
+								bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
 							}
-						} else if (weekCellType == Cell.CELL_TYPE_STRING) {
-							if (weekCell.getStringCellValue() != "0") {
-								for (int j=1;j<8;j++) {
-									bookOut.getSheet("new sheet").getRow(real + weekOffset).createCell(j);
-									if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
-											bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
-									} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
-											bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
-									}
-									bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
+							double newVal = weekCell.getNumericCellValue()-1;
+							weekCell.setCellValue(newVal);
+							real++;
+						} else if (weekCellType == Cell.CELL_TYPE_STRING && weekCell.getStringCellValue() != "0") {
+							for (int j=1;j<8;j++) {
+								bookOut.getSheet("new sheet").getRow(real + weekOffset).createCell(j);
+								if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
+										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
+								} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
+										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
 								}
-								double newVal = Double.parseDouble(weekCell.getStringCellValue())-1;
-								weekCell.setCellValue(newVal);
-								real++;
+								bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
 							}
+							double newVal = Double.parseDouble(weekCell.getStringCellValue())-1;
+							weekCell.setCellValue(newVal);
+							real++;
 						}
 					}
 					i++;
 				} while(true);
-				weekBook.write(weekOut);
 			} catch (NullPointerException e){
 				e.printStackTrace();
+			} finally {
+				weekBook.write(weekOut);
+				weekOut.close();
 			}
-			weekOut.close();
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellFormula("SUM(H:H)");
 			bookOut.getSheet("new sheet").getRow(5).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);;
@@ -159,13 +153,6 @@ public class HSSFCompiler {
 			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);;
 			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellFormula("J4+J6");
 			bookOut.write(finalOut);
-			/*JFrame frame = new JFrame();
-			JLabel label = new JLabel("Successful");
-			label.setFont(new Font("Arial", Font.BOLD, 24));
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.add(label);
-			frame.setVisible(true);
-			frame.pack();*/
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		} finally {
