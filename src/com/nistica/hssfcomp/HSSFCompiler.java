@@ -2,10 +2,6 @@ package com.nistica.hssfcomp;
 
 import java.io.*;
 import java.util.*;
-import java.awt.Font;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.hssf.usermodel.*;
@@ -43,7 +39,7 @@ public class HSSFCompiler {
 			int offset = 0;
 			while (true) {
 				try {
-					if (bookOut.getSheet("new sheet").getRow(offset).getCell(0).getCellType() != Cell.CELL_TYPE_BLANK) {
+					if (bookOut.getSheet("new sheet").getRow(offset).getCell(0).getCellTypeEnum() != CellType.BLANK) {
 						offset++;
 					} else {
 						break;
@@ -97,7 +93,7 @@ public class HSSFCompiler {
 			try {
 				HSSFRow weekRow;
 				Cell weekCell = null;
-				int weekCellType;
+				CellType weekCellType;
 				do {
 					weekRow = weekSheet.getRow(i);
 					bookOut.getSheet("new sheet").createRow(i + weekOffset);
@@ -107,13 +103,13 @@ public class HSSFCompiler {
 						break;
 					}
 					if (weekCell != null) {
-						weekCellType = weekCell.getCellType();
-						if (weekCellType == Cell.CELL_TYPE_NUMERIC && weekCell.getNumericCellValue() != 0){
+						weekCellType = weekCell.getCellTypeEnum();
+						if (weekCellType == CellType.NUMERIC && weekCell.getNumericCellValue() != 0){
 							for (int j=1;j<8;j++) {
 								bookOut.getSheet("new sheet").getRow(real + weekOffset).createCell(j);
-								if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
+								if (weekRow.getCell(j).getCellTypeEnum() == CellType.STRING) {
 										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
-								} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
+								} else if (weekRow.getCell(j).getCellTypeEnum() == CellType.NUMERIC) {
 										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
 								}
 								bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
@@ -121,12 +117,12 @@ public class HSSFCompiler {
 							double newVal = weekCell.getNumericCellValue()-1;
 							weekCell.setCellValue(newVal);
 							real++;
-						} else if (weekCellType == Cell.CELL_TYPE_STRING && weekCell.getStringCellValue() != "0") {
+						} else if (weekCellType == CellType.STRING && weekCell.getStringCellValue() != "0") {
 							for (int j=1;j<8;j++) {
 								bookOut.getSheet("new sheet").getRow(real + weekOffset).createCell(j);
-								if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_STRING) {
+								if (weekRow.getCell(j).getCellTypeEnum() == CellType.STRING) {
 										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getStringCellValue());
-								} else if (weekRow.getCell(j).getCellType() == Cell.CELL_TYPE_NUMERIC) {
+								} else if (weekRow.getCell(j).getCellTypeEnum() == CellType.NUMERIC) {
 										bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellValue(weekRow.getCell(j).getNumericCellValue());
 								}
 								bookOut.getSheet("new sheet").getRow(real + weekOffset).getCell(j).setCellStyle(SetCS(bookOut));
@@ -143,12 +139,13 @@ public class HSSFCompiler {
 			} finally {
 				weekBook.write(weekOut);
 				weekOut.close();
+				weekBook.close();
 			}
-			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);
+			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellType(CellType.FORMULA);
 			bookOut.getSheet("new sheet").getRow(3).getCell(9).setCellFormula("SUM(H:H)");
-			bookOut.getSheet("new sheet").getRow(5).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);;
+			bookOut.getSheet("new sheet").getRow(5).getCell(9).setCellType(CellType.FORMULA);;
 			bookOut.getSheet("new sheet").getRow(5).getCell(9).setCellFormula("J4*0.07");
-			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellType(Cell.CELL_TYPE_FORMULA);;
+			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellType(CellType.FORMULA);;
 			bookOut.getSheet("new sheet").getRow(7).getCell(9).setCellFormula("J4+J6");
 			bookOut.write(finalOut);
 		} catch (IOException ioe) {
@@ -163,15 +160,15 @@ public class HSSFCompiler {
 	}
 	public static CellStyle SetCS(HSSFWorkbook workbook) {
 		CellStyle style = workbook.createCellStyle();
-		style.setBorderRight(CellStyle.BORDER_THIN);
+		style.setBorderTop(BorderStyle.THIN);
         style.setRightBorderColor(IndexedColors.BLACK.getIndex());
-        style.setBorderBottom(CellStyle.BORDER_THIN);
+        style.setBorderTop(BorderStyle.THIN);
         style.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-        style.setBorderLeft(CellStyle.BORDER_THIN);
+        style.setBorderTop(BorderStyle.THIN);
         style.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-        style.setBorderTop(CellStyle.BORDER_THIN);
+        style.setBorderTop(BorderStyle.THIN);
         style.setTopBorderColor(IndexedColors.BLACK.getIndex());
-        style.setAlignment(CellStyle.ALIGN_CENTER);
+        style.setAlignment(HorizontalAlignment.CENTER);
         return style;
 	}
 }
